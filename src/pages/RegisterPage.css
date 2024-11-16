@@ -1,0 +1,287 @@
+/* RegisterPage.css */
+.register-page-container {
+    @apply container mx-auto px-4 py-6 max-w-4xl;
+}
+
+.header-container {
+    @apply flex justify-between items-center mb-6;
+}
+
+.page-title {
+    @apply text-2xl md:text-4xl font-bold text-gray-800;
+}
+
+.back-button {
+    @apply text-sm md:text-base;
+}
+
+.modal-content {
+    @apply flex flex-col items-center space-y-4;
+}
+
+.video-preview {
+    @apply rounded-lg shadow-lg w-full max-w-2xl mb-4;
+}
+
+.instructions {
+    @apply text-sm md:text-base text-center text-gray-600 px-4;
+}
+
+.capture-button {
+    @apply w-full md:w-auto min-w-[200px];
+}
+
+.capture-count {
+    @apply mt-2 font-semibold text-sm md:text-base;
+}
+
+.capture-progress {
+    @apply w-full mt-2;
+}
+
+/* Estilos específicos para los toasts */
+.camera-toast {
+    position: fixed !important;
+    z-index: 100000 !important;
+    min-width: 280px !important;
+    max-width: 350px !important;
+}
+
+.success-toast {
+    background-color: white !important;
+    color: #1a1a1a !important;
+    border-left: 4px solid #10B981 !important;
+}
+
+.Toastify__toast-container {
+    width: 100% !important;
+    max-width: 400px !important;
+    z-index: 100000 !important;
+    position: fixed !important;
+    top: 1rem !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+}
+
+.Toastify__toast {
+    background: white !important;
+    color: #1a1a1a !important;
+    margin-bottom: 8px !important;
+    border-radius: 8px !important;
+    padding: 12px !important;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+}
+
+.toast-content {
+    padding: 8px;
+    color: #1a1a1a !important;
+
+}
+
+.toast-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #1a1a1a;
+}
+
+.toast-body {
+    font-size: 14px;
+    color: #4b5563;
+}
+
+.info-section {
+    margin-top: 8px;
+}
+
+.info-section ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+.info-section li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+    font-size: 13px;
+    color: #4b5563;
+}
+
+/* Estilos específicos para diferentes tipos de toast */
+.Toastify__toast--success {
+    background-color: white !important;
+    border-left: 4px solid #10B981 !important;
+}
+
+.Toastify__toast--error {
+    background-color: white !important;
+    border-left: 4px solid #EF4444 !important;
+}
+
+.Toastify__toast--warning {
+    background-color: white !important;
+    border-left: 4px solid #F59E0B !important;
+}
+
+.Toastify__toast--info {
+    background-color: white !important;
+    border-left: 4px solid #3B82F6 !important;
+}
+
+.Toastify__toast--loading {
+    background-color: white !important;
+    border-left: 4px solid #6B7280 !important;
+}
+
+/* Personalización del botón de cerrar */
+.Toastify__close-button {
+    opacity: 0.7 !important;
+    transition: opacity 0.2s ease !important;
+}
+
+.Toastify__close-button:hover {
+    opacity: 1 !important;
+}
+
+.Toastify__close-button>svg {
+    fill: #4b5563 !important;
+}
+
+/* Animaciones suaves */
+.Toastify__toast {
+    transition: all 0.2s ease-out !important;
+}
+
+.Toastify__slide-enter--top-center {
+    animation-duration: 0.2s !important;
+}
+
+.Toastify__slide-exit--top-center {
+    animation-duration: 0.2s !important;
+}
+
+/* Ajustes para móviles */
+@media (max-width: 640px) {
+    .camera-toast {
+        min-width: 250px !important;
+        max-width: 300px !important;
+        font-size: 13px !important;
+    }
+
+    .Toastify__toast-container {
+        width: 90% !important;
+        padding: 0 !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+        top: 0.5rem !important;
+    }
+
+    .Toastify__toast {
+        margin: 0.5rem 0 !important;
+        padding: 10px !important;
+    }
+
+    .toast-title {
+        font-size: 14px;
+    }
+
+    .toast-body {
+        font-size: 13px;
+    }
+
+    .info-section li {
+        font-size: 12px;
+    }
+
+    .capture-button {
+        @apply w-full;
+    }
+
+    .video-preview {
+        @apply w-full;
+    }
+
+    .instructions {
+        @apply text-sm px-2;
+    }
+}
+
+/* Estilo para la modal de reconocimiento facial */
+.facial-recognition-modal {
+    @apply z-50;
+}
+
+/* Estilo para el overlay de la modal */
+.modal-overlay {
+    background-color: rgba(0, 0, 0, 0.5);
+    @apply fixed inset-0 z-40;
+}
+
+/* Ajustes para la barra de progreso */
+.capture-progress {
+    @apply w-full rounded-full overflow-hidden;
+}
+
+/* Ajustes para el contenedor de video */
+.video-container {
+    @apply relative w-full aspect-video max-w-2xl mx-auto rounded-lg overflow-hidden shadow-lg;
+}
+
+/* Estilos para el estado de procesamiento */
+.processing-overlay {
+    @apply absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center;
+}
+
+.processing-spinner {
+    @apply animate-spin h-8 w-8 border-4 border-blue-500 rounded-full border-t-transparent;
+}
+
+.toast-title {
+    color: #1a1a1a !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    margin-bottom: 8px !important;
+}
+
+.toast-body {
+    color: #4b5563 !important;
+    font-size: 14px !important;
+}
+
+.info-section {
+    margin-top: 8px !important;
+}
+
+.info-section ul {
+    list-style: none !important;
+    padding-left: 0 !important;
+}
+
+.info-section li {
+    color: #4b5563 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    margin-bottom: 4px !important;
+    font-size: 13px !important;
+}
+
+/* Estilo para el ícono de check */
+.info-section li::before {
+    content: "✓";
+    color: #10B981 !important;
+    font-weight: bold !important;
+}
+
+/* Ajustes para toast de captura exitosa */
+.camera-toast.Toastify__toast--success {
+    background-color: #10B981 !important;
+    color: white !important;
+    border-left: none !important;
+}
+
+/* Asegurar visibilidad en modo oscuro */
+.Toastify__toast-container {
+    color-scheme: light !important;
+}

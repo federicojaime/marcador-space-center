@@ -24,7 +24,6 @@ const Header = () => {
                         className="mr-3 h-14 w-auto"
                         alt="Space Center Logo"
                     />
-
                 </Navbar.Brand>
                 <Navbar.Toggle />
                 <Navbar.Collapse>
@@ -34,7 +33,12 @@ const Header = () => {
                             as={Link}
                             to={item.path}
                             active={location.pathname === item.path}
-                            className="text-base font-medium"
+                            className={`text-base font-medium transition-colors
+                                ${location.pathname === item.path
+                                    ? 'text-blue-600 hover:text-blue-700'
+                                    : 'text-gray-600 hover:text-gray-900'
+                                }
+                            `}
                         >
                             {item.name}
                         </Navbar.Link>
