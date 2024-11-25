@@ -12,10 +12,9 @@ import ProtectedRoute from './components/ProtectedRoute';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-// Componente para manejar el layout
 const Layout = ({ children }) => {
   const location = useLocation();
-  const hideHeaderRoutes = ['/login-dashboard', '/dashboard']; // Rutas donde no queremos mostrar el header
+  const hideHeaderRoutes = ['/login-dashboard', '/dashboard'];
 
   const shouldShowHeader = !hideHeaderRoutes.includes(location.pathname);
 
@@ -35,7 +34,23 @@ const Layout = ({ children }) => {
 function App() {
   return (
     <Router basename="/en-20/">
-      <ToastContainer />
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+        limit={3}
+        style={{
+          zIndex: 9999,
+          marginTop: '60px'
+        }}
+      />
       <Routes>
         <Route path="/login-dashboard" element={<LoginDashboard />} />
         <Route

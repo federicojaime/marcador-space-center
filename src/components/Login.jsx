@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
 import * as faceapi from 'face-api.js';
 import { Button, Card } from 'flowbite-react';
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 import LoadingSpinner from './LoadingSpinner';
 import 'react-toastify/dist/ReactToastify.css';
 import { HiArrowLeft } from 'react-icons/hi';
@@ -386,7 +386,6 @@ const Login = () => {
         <LoadingSpinner message="Cargando modelos de reconocimiento facial..." />
       )}
 
-      <ToastContainer position="bottom-right" autoClose={5000} />
     </Card>
   );
 };

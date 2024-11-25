@@ -1,4 +1,3 @@
-// RegisterForm.jsx
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Button, Progress } from 'flowbite-react';
@@ -6,8 +5,9 @@ import { HiOutlineCamera, HiOutlineUserAdd } from 'react-icons/hi';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-const RegisterForm = ({ handleOpenModal, handleSubmit, captureCount }) => {
+const RegisterForm = ({ handleOpenModal, handleSubmit, captureCount, isSubmitting: formIsSubmitting }) => {
   const [branches, setBranches] = useState([]);
+  const [isLoadingBranches, setIsLoadingBranches] = useState(true);
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
@@ -20,11 +20,23 @@ const RegisterForm = ({ handleOpenModal, handleSubmit, captureCount }) => {
 
   useEffect(() => {
     const fetchBranches = async () => {
+      setIsLoadingBranches(true);
       try {
         const response = await axios.get('https://codeo.site/api-marcador/api/branches');
-        setBranches(response.data);
+
+        if (response.data && response.data.status === 'success' && Array.isArray(response.data.data)) {
+          setBranches(response.data.data);
+        } else {
+          console.error('Formato de respuesta inesperado:', response.data);
+          setBranches([]);
+          toast.error('Error en el formato de datos de sucursales');
+        }
       } catch (error) {
+        console.error('Error al cargar las sucursales:', error);
         toast.error('Error al cargar las sucursales. Por favor, recarga la página.');
+        setBranches([]);
+      } finally {
+        setIsLoadingBranches(false);
       }
     };
 
@@ -38,7 +50,6 @@ const RegisterForm = ({ handleOpenModal, handleSubmit, captureCount }) => {
       newErrors.nombre = 'El nombre debe tener al menos 3 caracteres';
     }
 
-    // Validar que la cédula tenga al menos 1 dígito
     if (!/^\d+$/.test(formData.cedula)) {
       newErrors.cedula = 'La cédula debe contener solo números';
     }
@@ -100,7 +111,6 @@ const RegisterForm = ({ handleOpenModal, handleSubmit, captureCount }) => {
     setIsSubmitting(true);
     try {
       await handleSubmit(formData);
-      // Solo limpiar el formulario si handleSubmit no arroja error
       setFormData({
         nombre: '',
         cedula: '',
@@ -110,19 +120,20 @@ const RegisterForm = ({ handleOpenModal, handleSubmit, captureCount }) => {
       });
       setErrors({});
     } catch (error) {
-      // No necesitamos manejar el error aquí ya que se maneja en handleSubmit
       console.error('Error en el envío del formulario:', error);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-
   const getFieldError = (fieldName) => (
     errors[fieldName] && (
       <span className="text-red-500 text-xs mt-1">{errors[fieldName]}</span>
     )
   );
+
+  // Verificar si el formulario está en proceso de envío
+  const isFormProcessing = isSubmitting || formIsSubmitting;
 
   return (
     <div className="space-y-4">
@@ -141,6 +152,7 @@ const RegisterForm = ({ handleOpenModal, handleSubmit, captureCount }) => {
               onChange={handleChange}
               placeholder="Ingrese el nombre completo"
               required
+              disabled={isFormProcessing}
             />
             {getFieldError('nombre')}
           </div>
@@ -158,6 +170,7 @@ const RegisterForm = ({ handleOpenModal, handleSubmit, captureCount }) => {
               onChange={handleChange}
               placeholder="Ingrese los números"
               required
+              disabled={isFormProcessing}
             />
             {getFieldError('cedula')}
           </div>
@@ -175,6 +188,7 @@ const RegisterForm = ({ handleOpenModal, handleSubmit, captureCount }) => {
               onChange={handleChange}
               max={new Date().toISOString().split('T')[0]}
               required
+              disabled={isFormProcessing}
             />
             {getFieldError('fecha_nacimiento')}
           </div>
@@ -190,15 +204,21 @@ const RegisterForm = ({ handleOpenModal, handleSubmit, captureCount }) => {
               value={formData.sucursal_id}
               onChange={handleChange}
               required
+              disabled={isLoadingBranches || isFormProcessing}
             >
-              <option value="">Seleccione una sucursal</option>
-              {branches.map((branch) => (
+              <option value="">
+                {isLoadingBranches ? 'Cargando sucursales...' : 'Seleccione una sucursal'}
+              </option>
+              {Array.isArray(branches) && branches.map((branch) => (
                 <option key={branch.id} value={branch.id}>
                   {branch.nombre}
                 </option>
               ))}
             </select>
             {getFieldError('sucursal_id')}
+            {isLoadingBranches && (
+              <span className="text-gray-500 text-xs mt-1">Cargando sucursales...</span>
+            )}
           </div>
 
           <div>
@@ -215,6 +235,7 @@ const RegisterForm = ({ handleOpenModal, handleSubmit, captureCount }) => {
               placeholder="Ingrese 4 dígitos"
               maxLength={4}
               required
+              disabled={isFormProcessing}
             />
             {getFieldError('pin')}
           </div>
@@ -224,11 +245,11 @@ const RegisterForm = ({ handleOpenModal, handleSubmit, captureCount }) => {
               color="blue"
               onClick={handleOpenModal}
               className="w-full"
-              disabled={isSubmitting}
+              disabled={isFormProcessing}
               type="button"
             >
               <HiOutlineCamera className="mr-2 h-5 w-5" />
-              Capturar Rostro
+              {isFormProcessing ? 'Procesando...' : 'Capturar Rostro'}
             </Button>
           </div>
         </div>
@@ -246,9 +267,9 @@ const RegisterForm = ({ handleOpenModal, handleSubmit, captureCount }) => {
           type="submit"
           color="success"
           className="mt-8 w-full"
-          disabled={captureCount < 5 || isSubmitting}
+          disabled={captureCount < 5 || isFormProcessing}
         >
-          {isSubmitting ? (
+          {isFormProcessing ? (
             <div className="flex items-center justify-center">
               <div className="animate-spin mr-2 h-5 w-5 border-b-2 border-white rounded-full" />
               Registrando...

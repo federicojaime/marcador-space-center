@@ -1,4 +1,3 @@
-// RegisterPage.jsx
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import RegisterForm from '../components/RegisterForm';
@@ -223,9 +222,8 @@ const RegisterPage = () => {
     }
 
     setIsSubmitting(true);
-    showToast('info', 'Registrando empleado...', {
-      autoClose: false,
-      toastId: 'submit-loading'
+    const loadingToastId = toast.loading('Registrando empleado...', {
+      position: "top-center",
     });
 
     try {
@@ -237,7 +235,7 @@ const RegisterPage = () => {
       if (response.status === 201 || response.status === 200) {
         setCapturedDescriptors([]);
         setCaptureCount(0);
-        toast.dismiss('submit-loading');
+        toast.dismiss(loadingToastId);
 
         showToast(
           'success',
@@ -255,13 +253,13 @@ const RegisterPage = () => {
             </div>
           </div>,
           {
-            autoClose: 8000,
+            autoClose: 5000,
             className: 'success-toast'
           }
         );
       }
     } catch (error) {
-      toast.dismiss('submit-loading');
+      toast.dismiss(loadingToastId);
       showToast(
         'error',
         <div>
@@ -320,7 +318,7 @@ const RegisterPage = () => {
               <Button
                 color={captureCount >= 5 ? "success" : "blue"}
                 onClick={captureCount >= 5 ? handleCloseModal : handleCaptureDescriptor}
-                disabled={isProcessing || !modelsLoaded}
+                disabled={isProcessing || !modelsLoaded || isSubmitting}
                 className="capture-button"
               >
                 <HiOutlineCamera className="mr-2 h-5 w-5" />
