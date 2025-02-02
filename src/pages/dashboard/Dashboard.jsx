@@ -13,7 +13,8 @@ import {
 import BranchesManagement from './branches/BranchesManagement';
 import EmployeesManagement from '../../components/EmployeesManagement';
 import AttendanceManagement from '../../components/AttenndanceManagement';
-
+import DashboardStats
+ from '../../components/DashboardStats';
 const Dashboard = () => {
   const [selectedView, setSelectedView] = useState('overview');
   const [employees, setEmployees] = useState([]);
@@ -237,7 +238,7 @@ const Dashboard = () => {
           </div>
         ) : (
           <>
-            {selectedView === 'overview' && <Overview />}
+            {selectedView === 'overview' && <DashboardStats />}
             {selectedView === 'employees' && (
               <EmployeesManagement
                 employees={employees}

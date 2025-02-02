@@ -17,6 +17,7 @@ const EmployeeFormDialog = ({ open, onOpenChange, employee = null, branches, onS
       return '';
     }
   };
+
   const [formData, setFormData] = useState({
     nombre: '',
     cedula: '',
@@ -34,6 +35,7 @@ const EmployeeFormDialog = ({ open, onOpenChange, employee = null, branches, onS
     vacaciones_disponibles: 0,
     notas: ''
   });
+
   useEffect(() => {
     if (employee) {
       setFormData({
@@ -109,6 +111,7 @@ const EmployeeFormDialog = ({ open, onOpenChange, employee = null, branches, onS
           <div className="p-6 max-h-[calc(100vh-200px)] overflow-y-auto">
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Campos del formulario */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Nombre</label>
                   <TextInput
@@ -235,6 +238,7 @@ const EmployeeFormDialog = ({ open, onOpenChange, employee = null, branches, onS
 };
 
 const EmployeesManagement = () => {
+  // Estados generales
   const [employees, setEmployees] = useState([]);
   const [branches, setBranches] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -243,17 +247,32 @@ const EmployeesManagement = () => {
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [confirmDialog, setConfirmDialog] = useState({ open: false, employee: null });
 
-  // Estados para filtros y paginación
+  // Filtros y paginación
   const [searchTerm, setSearchTerm] = useState('');
   const [branchFilter, setBranchFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
+  // Modal de PIN
+  const [showPinModal, setShowPinModal] = useState(false);
+  const [pinEmployee, setPinEmployee] = useState(null);
+  const [newPin, setNewPin] = useState('');
+
+  // Modal de cambio de estado
+  const [stateModal, setStateModal] = useState({ open: false, employee: null });
+  const [newState, setNewState] = useState('');
+
+  // **Nuevos estados para "Agregar Nota"**
+  const [showNoteModal, setShowNoteModal] = useState(false);
+  const [noteEmployee, setNoteEmployee] = useState(null);
+  const [noteText, setNoteText] = useState("");
+  const [selectedTemplate, setSelectedTemplate] = useState("");
+
+  // Funciones para cargar datos
   const fetchBranches = async () => {
     try {
       const response = await api.getBranches();
-      // Extraer el array de data
       setBranches(response?.data || []);
     } catch (err) {
       console.error('Error al cargar sucursales:', err);
@@ -282,6 +301,28 @@ const EmployeesManagement = () => {
     fetchEmployees();
   }, []);
 
+  const handlePinChange = async () => {
+    if (!pinEmployee || !newPin.trim()) {
+      toast.error('Debe ingresar un PIN válido');
+      return;
+    }
+
+    if (!/^\d{4}$/.test(newPin)) {
+      toast.error('El PIN debe ser de 4 dígitos');
+      return;
+    }
+
+    try {
+      await api.updateEmployeePin(pinEmployee.id, newPin);
+      toast.success('PIN actualizado correctamente');
+      setShowPinModal(false);
+      setPinEmployee(null);
+      setNewPin('');
+    } catch (err) {
+      toast.error('Error al actualizar el PIN: ' + err.message);
+    }
+  };
+
   const handleSaveEmployee = async (formData) => {
     try {
       if (selectedEmployee) {
@@ -300,22 +341,38 @@ const EmployeesManagement = () => {
     }
   };
 
-  const handleDelete = async (employee) => {
+  const handleStateChange = async () => {
+    if (!stateModal.employee || !newState) {
+      toast.error('Por favor, seleccione un estado válido');
+      return;
+    }
+
+    const payload = {
+      estado: newState,
+    };
+
+    if (newState === 'despedido' || newState === 'renuncia') {
+      payload.fecha_salida = format(new Date(), 'yyyy-MM-dd');
+    } else {
+      payload.fecha_salida = null;
+    }
+
     try {
-      await api.disableEmployee(employee.id);
-      toast.success('Empleado deshabilitado exitosamente');
-      await fetchEmployees();
+      await api.changeEmployeeState(stateModal.employee.id, payload);
+      toast.success('Estado actualizado correctamente');
+      setStateModal({ open: false, employee: null });
+      setNewState('');
+      fetchEmployees();
     } catch (error) {
-      toast.error('Error al deshabilitar el empleado');
-    } finally {
-      setConfirmDialog({ open: false, employee: null });
+      toast.error('Error al actualizar el estado: ' + error.message);
     }
   };
 
-  // Filtrar empleados
+  // Filtrado y paginación
   const filteredEmployees = useMemo(() => {
     return employees.filter(employee => {
-      const matchesSearch = employee.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      const matchesSearch =
+        employee.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         employee.cedula?.includes(searchTerm);
       const matchesBranch = !branchFilter || employee.sucursal_id?.toString() === branchFilter;
       const matchesStatus = !statusFilter || employee.estado === statusFilter;
@@ -324,7 +381,6 @@ const EmployeesManagement = () => {
     });
   }, [employees, searchTerm, branchFilter, statusFilter]);
 
-  // Paginar empleados
   const paginatedEmployees = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     return filteredEmployees.slice(startIndex, startIndex + itemsPerPage);
@@ -335,7 +391,7 @@ const EmployeesManagement = () => {
   return (
     <Card className="w-full">
       <div className="p-4">
-        {/* Header */}
+        {/* Encabezado */}
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-semibold">Empleados</h3>
           <Button onClick={() => {
@@ -382,7 +438,9 @@ const EmployeesManagement = () => {
           >
             <option value="">Todos los estados</option>
             <option value="activo">Activo</option>
-            <option value="inactivo">Inactivo</option>
+            <option value="despedido">Despedido</option>
+            <option value="vacaciones">Vacaciones</option>
+            <option value="renuncia">Renuncia</option>
           </Select>
         </div>
 
@@ -407,7 +465,7 @@ const EmployeesManagement = () => {
                 {paginatedEmployees.map((employee) => (
                   <Table.Row key={employee.id} className="bg-white">
                     <Table.Cell className="font-medium">
-                      {employee?.nombre || 'Sin nombre'} {/* Agrega validación */}
+                      {employee?.nombre || 'Sin nombre'}
                     </Table.Cell>
                     <Table.Cell>{employee?.cedula || 'Sin cédula'}</Table.Cell>
                     <Table.Cell>
@@ -416,8 +474,7 @@ const EmployeesManagement = () => {
                     <Table.Cell>
                       <span className={`px-2 py-1 rounded-full text-xs ${employee?.estado === 'activo'
                         ? 'bg-green-100 text-green-800'
-                        : 'bg-red-100 text-red-800'
-                        }`}>
+                        : 'bg-red-100 text-red-800'}`}>
                         {employee?.estado || 'desconocido'}
                       </span>
                     </Table.Cell>
@@ -431,17 +488,39 @@ const EmployeesManagement = () => {
                             setDialogOpen(true);
                           }}
                         >
-                          Editar
+                          Realizar Edición
                         </Button>
-                        {employee.estado === 'activo' && (
-                          <Button
-                            size="sm"
-                            color="failure"
-                            onClick={() => setConfirmDialog({ open: true, employee })}
-                          >
-                            Deshabilitar
-                          </Button>
-                        )}
+                        <Button
+                          size="sm"
+                          color="warning"
+                          onClick={() => {
+                            setPinEmployee(employee);
+                            setShowPinModal(true);
+                          }}
+                        >
+                          Cambiar PIN
+                        </Button>
+                        <Button
+                          size="sm"
+                          color="blue"
+                          onClick={() => {
+                            setStateModal({ open: true, employee });
+                            setNewState(employee.estado);
+                          }}
+                        >
+                          Cambiar Estado
+                        </Button>
+                        <Button
+                          size="sm"
+                          color="purple"
+                          onClick={() => {
+                            setNoteEmployee(employee);
+                            setNoteText(employee.notas || "");
+                            setSelectedTemplate("");
+                            setShowNoteModal(true);
+                          }}
+                        >
+                          Ver Notas                        </Button>
                       </div>
                     </Table.Cell>
                   </Table.Row>
@@ -521,32 +600,182 @@ const EmployeesManagement = () => {
         onSave={handleSaveEmployee}
       />
 
-      {/* Modal de confirmación para deshabilitar */}
-      <Dialog open={confirmDialog.open} onOpenChange={(open) => setConfirmDialog({ open, employee: null })}>
+      {/* Modal de cambio de PIN */}
+      <Dialog open={showPinModal} onOpenChange={(open) => { if (!open) { setShowPinModal(false); setPinEmployee(null); setNewPin(''); } }}>
         <DialogContent className="fixed inset-0 flex items-center justify-center bg-black/50">
           <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-md">
             <DialogTitle className="text-xl font-semibold text-gray-800 mb-4">
-              Confirmar Deshabilitación
+              Cambiar PIN
             </DialogTitle>
-            <div className="mb-6">
-              <p className="text-gray-600">
-                ¿Estás seguro que deseas deshabilitar al empleado{' '}
-                <span className="font-semibold">{confirmDialog.employee?.nombre}</span>?
-                Esta acción cambiará su estado a inactivo.
-              </p>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Empleado
+                </label>
+                <TextInput value={pinEmployee?.nombre || ''} disabled />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Nuevo PIN
+                </label>
+                <TextInput
+                  type="password"
+                  maxLength={4}
+                  value={newPin}
+                  onChange={(e) => setNewPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                  placeholder="Ingrese el nuevo PIN (4 dígitos)"
+                />
+              </div>
             </div>
-            <div className="flex justify-end space-x-3">
+            <div className="flex justify-end space-x-3 mt-6">
               <Button
                 color="gray"
-                onClick={() => setConfirmDialog({ open: false, employee: null })}
+                onClick={() => {
+                  setShowPinModal(false);
+                  setPinEmployee(null);
+                  setNewPin('');
+                }}
+              >
+                Cancelar
+              </Button>
+              <Button color="success" onClick={handlePinChange}>
+                Guardar
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de cambio de estado */}
+      <Dialog open={stateModal.open} onOpenChange={(open) => { if (!open) { setStateModal({ open: false, employee: null }); setNewState(''); } }}>
+        <DialogContent className="fixed inset-0 flex items-center justify-center bg-black/50">
+          <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-md">
+            <DialogTitle className="text-xl font-semibold text-gray-800 mb-4">
+              Cambiar Estado
+            </DialogTitle>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Empleado
+                </label>
+                <TextInput value={stateModal.employee?.nombre || ''} disabled />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Nuevo Estado
+                </label>
+                <Select value={newState} onChange={(e) => setNewState(e.target.value)}>
+                  <option value="activo">Activo</option>
+                  <option value="despedido">Despedido</option>
+                  <option value="vacaciones">Vacaciones</option>
+                  <option value="renuncia">Renuncia</option>
+                </Select>
+              </div>
+              {(newState === 'despedido' || newState === 'renuncia') && (
+                <p className="text-sm text-gray-600">
+                  Al seleccionar {newState}, se establecerá la fecha de hoy como fecha de baja.
+                </p>
+              )}
+            </div>
+            <div className="flex justify-end space-x-3 mt-6">
+              <Button
+                color="gray"
+                onClick={() => {
+                  setStateModal({ open: false, employee: null });
+                  setNewState('');
+                }}
+              >
+                Cancelar
+              </Button>
+              <Button color="success" onClick={handleStateChange}>
+                Guardar
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de agregar nota */}
+      <Dialog open={showNoteModal} onOpenChange={(open) => { if (!open) { setShowNoteModal(false); setNoteEmployee(null); setNoteText(""); setSelectedTemplate(""); } }}>
+        <DialogContent className="fixed inset-0 flex items-center justify-center bg-black/50">
+          <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-md">
+            <DialogTitle className="text-xl font-semibold text-gray-800 mb-4">
+              Agregar Nota
+            </DialogTitle>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Empleado
+                </label>
+                <TextInput value={noteEmployee?.nombre || ''} disabled />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Plantilla de Nota (opcional)
+                </label>
+                <Select
+                  value={selectedTemplate}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setSelectedTemplate(value);
+                    if (value !== 'otro' && value !== '') {
+                      // Asigna un texto predefinido según la plantilla seleccionada
+                      const templateText = value.charAt(0).toUpperCase() + value.slice(1);
+                      setNoteText(templateText);
+                    } else if (value === 'otro') {
+                      setNoteText("");
+                    }
+                  }}
+                >
+                  <option value="">Seleccione una plantilla</option>
+                  <option value="vacaciones">Vacaciones</option>
+                  <option value="incapacidad">Incapacidad</option>
+                  <option value="accidente">Accidente</option>
+                  <option value="otro">Otro</option>
+                </Select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Nota
+                </label>
+                <textarea
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                  rows={3}
+                  value={noteText}
+                  onChange={(e) => setNoteText(e.target.value)}
+                  placeholder="Escriba aquí la nota..."
+                />
+              </div>
+            </div>
+            <div className="flex justify-end space-x-3 mt-6">
+              <Button
+                color="gray"
+                onClick={() => {
+                  setShowNoteModal(false);
+                  setNoteEmployee(null);
+                  setNoteText("");
+                  setSelectedTemplate("");
+                }}
               >
                 Cancelar
               </Button>
               <Button
-                color="failure"
-                onClick={() => handleDelete(confirmDialog.employee)}
+                color="success"
+                onClick={async () => {
+                  try {
+                    await api.updateEmployee(noteEmployee.id, { notas: noteText });
+                    toast.success("Nota actualizada correctamente");
+                    setShowNoteModal(false);
+                    setNoteEmployee(null);
+                    setNoteText("");
+                    setSelectedTemplate("");
+                    fetchEmployees();
+                  } catch (error) {
+                    toast.error("Error al actualizar la nota: " + error.message);
+                  }
+                }}
               >
-                Deshabilitar
+                Guardar
               </Button>
             </div>
           </div>

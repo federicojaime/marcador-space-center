@@ -16,6 +16,7 @@ const RegisterForm = ({ handleOpenModal, handleSubmit, captureCount, isSubmittin
     sucursal_id: '',
     pin: '',
     fecha_nacimiento: '',
+    fecha_ingreso: ''
   });
 
   useEffect(() => {
@@ -58,14 +59,33 @@ const RegisterForm = ({ handleOpenModal, handleSubmit, captureCount, isSubmittin
       newErrors.pin = 'El PIN debe tener 4 dígitos numéricos';
     }
 
-    const fechaNacimiento = new Date(formData.fecha_nacimiento);
     const hoy = new Date();
-    const edad = hoy.getFullYear() - fechaNacimiento.getFullYear();
 
+    // Validar fecha de nacimiento
     if (!formData.fecha_nacimiento) {
       newErrors.fecha_nacimiento = 'La fecha de nacimiento es requerida';
-    } else if (edad < 18 || edad > 100) {
-      newErrors.fecha_nacimiento = 'La edad debe estar entre 18 y 100 años';
+    } else {
+      const fechaNacimiento = new Date(formData.fecha_nacimiento);
+      const edad = hoy.getFullYear() - fechaNacimiento.getFullYear();
+      if (edad < 18 || edad > 100) {
+        newErrors.fecha_nacimiento = 'La edad debe estar entre 18 y 100 años';
+      }
+    }
+
+    // Validar fecha de ingreso
+    if (!formData.fecha_ingreso) {
+      newErrors.fecha_ingreso = 'La fecha de ingreso es requerida';
+    } else {
+      const fechaIngreso = new Date(formData.fecha_ingreso);
+      if (fechaIngreso > hoy) {
+        newErrors.fecha_ingreso = 'La fecha de ingreso no puede ser una fecha futura';
+      }
+      if (formData.fecha_nacimiento) {
+        const fechaNacimiento = new Date(formData.fecha_nacimiento);
+        if (fechaIngreso < fechaNacimiento) {
+          newErrors.fecha_ingreso = 'La fecha de ingreso no puede ser anterior a la fecha de nacimiento';
+        }
+      }
     }
 
     if (!formData.sucursal_id) {
@@ -117,6 +137,7 @@ const RegisterForm = ({ handleOpenModal, handleSubmit, captureCount, isSubmittin
         sucursal_id: '',
         pin: '',
         fecha_nacimiento: '',
+        fecha_ingreso: ''
       });
       setErrors({});
     } catch (error) {
@@ -139,13 +160,13 @@ const RegisterForm = ({ handleOpenModal, handleSubmit, captureCount, isSubmittin
     <div className="space-y-4">
       <form onSubmit={onSubmit} className="bg-white shadow-md rounded-lg p-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Nombre */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Nombre *
             </label>
             <input
-              className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 
-              ${errors.nombre ? 'border-red-500' : 'border-gray-300'}`}
+              className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.nombre ? 'border-red-500' : 'border-gray-300'}`}
               type="text"
               name="nombre"
               value={formData.nombre}
@@ -157,13 +178,13 @@ const RegisterForm = ({ handleOpenModal, handleSubmit, captureCount, isSubmittin
             {getFieldError('nombre')}
           </div>
 
+          {/* Cédula */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Cédula *
             </label>
             <input
-              className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 
-              ${errors.cedula ? 'border-red-500' : 'border-gray-300'}`}
+              className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.cedula ? 'border-red-500' : 'border-gray-300'}`}
               type="text"
               name="cedula"
               value={formData.cedula}
@@ -175,13 +196,13 @@ const RegisterForm = ({ handleOpenModal, handleSubmit, captureCount, isSubmittin
             {getFieldError('cedula')}
           </div>
 
+          {/* Fecha de Nacimiento */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Fecha de Nacimiento *
             </label>
             <input
-              className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 
-              ${errors.fecha_nacimiento ? 'border-red-500' : 'border-gray-300'}`}
+              className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.fecha_nacimiento ? 'border-red-500' : 'border-gray-300'}`}
               type="date"
               name="fecha_nacimiento"
               value={formData.fecha_nacimiento}
@@ -193,13 +214,31 @@ const RegisterForm = ({ handleOpenModal, handleSubmit, captureCount, isSubmittin
             {getFieldError('fecha_nacimiento')}
           </div>
 
+          {/* Fecha de Ingreso */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Fecha de Ingreso *
+            </label>
+            <input
+              className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.fecha_ingreso ? 'border-red-500' : 'border-gray-300'}`}
+              type="date"
+              name="fecha_ingreso"
+              value={formData.fecha_ingreso}
+              onChange={handleChange}
+              max={new Date().toISOString().split('T')[0]}
+              required
+              disabled={isFormProcessing}
+            />
+            {getFieldError('fecha_ingreso')}
+          </div>
+
+          {/* Sucursal */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Sucursal *
             </label>
             <select
-              className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 
-              ${errors.sucursal_id ? 'border-red-500' : 'border-gray-300'}`}
+              className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.sucursal_id ? 'border-red-500' : 'border-gray-300'}`}
               name="sucursal_id"
               value={formData.sucursal_id}
               onChange={handleChange}
@@ -221,13 +260,13 @@ const RegisterForm = ({ handleOpenModal, handleSubmit, captureCount, isSubmittin
             )}
           </div>
 
+          {/* PIN */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               PIN (4 dígitos) *
             </label>
             <input
-              className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 
-              ${errors.pin ? 'border-red-500' : 'border-gray-300'}`}
+              className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.pin ? 'border-red-500' : 'border-gray-300'}`}
               type="password"
               name="pin"
               value={formData.pin}
@@ -240,7 +279,8 @@ const RegisterForm = ({ handleOpenModal, handleSubmit, captureCount, isSubmittin
             {getFieldError('pin')}
           </div>
 
-          <div className="flex items-end">
+          {/* Botón para capturar rostro */}
+          <div className="md:col-span-2 flex items-end">
             <Button
               color="blue"
               onClick={handleOpenModal}
@@ -254,6 +294,7 @@ const RegisterForm = ({ handleOpenModal, handleSubmit, captureCount, isSubmittin
           </div>
         </div>
 
+        {/* Barra de progreso de capturas */}
         <div className="mt-6">
           <Progress
             progress={(captureCount / 5) * 100}
@@ -263,6 +304,7 @@ const RegisterForm = ({ handleOpenModal, handleSubmit, captureCount, isSubmittin
           />
         </div>
 
+        {/* Botón de envío */}
         <Button
           type="submit"
           color="success"

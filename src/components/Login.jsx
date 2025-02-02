@@ -100,13 +100,13 @@ const Login = () => {
         actions.push({ label: 'Salida almuerzo', action: 'lunch_end' });
       }
 
-      if (employeeStatus.available101Count > 0) {
+      /*if (employeeStatus.available101Count > 0) {
         if (!employeeStatus._101Started || (employeeStatus._101Ended && !employeeStatus._101_2Started)) {
           actions.push({ label: `Ingreso 101 (${employeeStatus.available101Count} disponible${employeeStatus.available101Count > 1 ? 's' : ''})`, action: 'start_101' });
         } else if ((employeeStatus._101Started && !employeeStatus._101Ended) || (employeeStatus._101_2Started && !employeeStatus._101_2Ended)) {
           actions.push({ label: 'Salida 101', action: 'end_101' });
         }
-      }
+      }*/
 
       if (!employeeStatus.overtimeStarted) {
         actions.push({ label: 'Ingreso hora extra', action: 'overtime_start' });
